@@ -106,7 +106,6 @@ class ViewPointSource extends PointSource {
       c.uniforms.colorDim = channels.dark.rgb;
       c.uniforms.colorBright = channels.black.rgb;
     }
-
     // Draw light sources
     else {
       c.uniforms.colorDim = channels.dim.rgb;
@@ -128,6 +127,28 @@ class ViewPointSource extends PointSource {
     return new PIXI.Polygon(...points);
   }
 }
+
+PointSource.prototype.drawColor = function() {
+  const hasColor = this.color && (this.alpha > 0);
+  if ( !hasColor && !this.darkness ) return null;
+  const c = this.coloration;
+  const l = c.light;
+
+  // Define common radius and dimensions
+  l.position.set(this.x, this.y);
+  l.width = l.height = this.radius * 2;
+
+  // Reset uniforms
+  const cu = c.shader.uniforms;
+  cu.darkness = this.darkness;
+  cu.alpha = this.alpha;
+  cu.color = this.colorRGB;
+
+  // Draw the masking FOV polygon
+  c.fov.clear();
+  if ( this.radius > 0 ) c.fov.beginFill(0xFFFFFF, 1.0).drawPolygon(this.fov).endFill();
+  return c;
+};
 
 Token.prototype.updateSource = function({defer=false, deleted=false, noUpdateFog=false}={}) {
   if ( CONFIG.debug.sight ) {
